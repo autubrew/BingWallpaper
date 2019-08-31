@@ -3,6 +3,7 @@ package bing
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -10,7 +11,6 @@ import (
 	"syscall"
 	"time"
 	"unsafe"
-	"util"
 )
 
 type Bing struct {
@@ -43,12 +43,24 @@ type Bing struct {
 var (
 	bing       Bing                 //壁纸相关信息
 	wpname     string               //生成的壁纸名。格式：日期_内容
+	wpinfo     string               //壁纸的信息。包括内容和copyright
+	updating   = false              //判断程序是否正在更新壁纸，确保同时只有一个更新实例在运行
 	HasUpdated = make(chan bool, 1) //更新成功信号
 )
 
 const (
 	IMG_FMT = ".jpg"
 )
+
+//返回生成的图片名
+func GetWallpaperName() string {
+	return wpname
+}
+
+//返回壁纸信息
+func GetWallpaperInfo() string {
+	return wpinfo
+}
 
 //根据返回的JSON生成文件名，格式为：日期_壁纸描述（备选：Hsh_壁纸描述）
 func generateWallpaperName() string {
@@ -126,47 +138,38 @@ func setWallpaper(wpabspath string) bool {
 	return ret != 0
 }
 
-func Update() error {
+//更新壁纸
+//只允许同时有一个Update实例进行更新
+//若更新成功则返回更新时间和nil，同时设置桌面壁纸；否则返回空时间且给出error，说明正在有其他实例进行更新
+func Update(savedir string) (string, error) {
 
-	var conf util.Configuration
-	conf, err := util.ReadConfiguration()
-	if err != nil {
-		return err
+	if !updating {
+		updating = true
+	} else {
+		return "", errors.New("there's an update going on")
 	}
 
-	if conf.Updatedate != time.Now().Format("20060102") {
-		//下载壁纸
-		for { //遇网络问题则循环等待
-			err = downloadWallpaper(conf.Wpdir) //TODO:需要测试网络连接问题会不会影响gui的响应
-			if err == nil {
-				break
-			} else {
-				time.Sleep(5 * time.Second)
-			}
+	//下载壁纸
+	for { //遇网络问题则循环等待
+		err := downloadWallpaper(savedir)
+		if err == nil {
+			break
+		} else {
+			time.Sleep(5 * time.Second)
 		}
-
-		//设置壁纸
-		setWallpaper(conf.Wpdir + wpname)
-
-		//TODO:将配置部分分离
-		//更新配置文件信息
-		conf.Updatedate = bing.Images[0].Enddate
-		reg := regexp.MustCompile(`.* \(©`)
-		description := string(reg.Find([]byte(bing.Images[0].Copyright)))
-		description = description[0 : len(description)-4] //删除尾部“ (©”
-		conf.Bing.Discription = description
-		copyright := bing.Images[0].Copyright[len(description)+2 : len(bing.Images[0].Copyright)-1]
-		conf.Bing.Copyright = copyright
-
-		//更新配置文件
-		err = util.WriteConfiguration(conf)
-		if err != nil {
-			return err
-		}
-
-		HasUpdated <- true
-
 	}
 
-	return nil
+	//设置壁纸
+	setWallpaper(savedir + wpname)
+
+	reg := regexp.MustCompile(`.* \(©`)
+	description := string(reg.Find([]byte(bing.Images[0].Copyright)))
+	description = description[0 : len(description)-4] //删除尾部“ (©”
+	copyright := bing.Images[0].Copyright[len(description)+2 : len(bing.Images[0].Copyright)-1]
+	wpinfo = description + "\n" + copyright
+
+	HasUpdated <- true
+	updating = false
+
+	return bing.Images[0].Enddate, nil
 }

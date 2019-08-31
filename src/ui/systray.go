@@ -28,11 +28,6 @@ var (
 	sign        updateSigns
 )
 
-func tooltip() string {
-	conf, _ := util.ReadConfiguration()
-	return conf.Bing.Discription + "\n" + conf.Bing.Copyright
-}
-
 func loadIcon(path string) []byte {
 	byteValue, _ := ioutil.ReadFile(path)
 	return byteValue
@@ -60,7 +55,7 @@ func updateMonitors() {
 			notification := toast.Notification{
 				AppID:               APP_NAME,
 				Title:               strconv.Itoa(time.Now().Year()) + "年" + strconv.Itoa(int(time.Now().Month())) + "月" + strconv.Itoa(time.Now().Day()) + "日",
-				Message:             tooltip(),
+				Message:             bing.GetWallpaperInfo(),
 				Icon:                IconMsg,
 				ActivationType:      "",
 				ActivationArguments: "",
@@ -76,8 +71,8 @@ func updateMonitors() {
 	//托盘信息更新
 	go func() {
 		for {
-			systray.SetTooltip(tooltip())
 			<-sign.TrayTooltip
+			systray.SetTooltip(bing.GetWallpaperInfo())
 		}
 	}()
 }
@@ -87,6 +82,7 @@ func onReady() {
 	conf, _ := util.ReadConfiguration()
 
 	systray.SetIcon(loadIcon(IconSystray))
+	systray.SetTooltip("正在等待网络连接")
 
 	//更新域
 	mUpdate := systray.AddMenuItem("更新壁纸", "")
@@ -117,20 +113,29 @@ func onReady() {
 
 	go func() {
 		for {
-			select {
+			conf, _ := util.ReadConfiguration()
+			select {	//所有case下的函数均要求不出现循环或阻塞，否则会造成其他case无法响应
 			case <-mUpdate.ClickedCh:
-				bing.Update()
+				updatedate, err := bing.Update(conf.Wpdir)
+				if err == nil {
+					conf.Updatedate = updatedate
+					util.WriteConfiguration(conf)
+				}
 			case <-mWpDir.ClickedCh:
 				openWpDir(conf)
 			case <-mLike.ClickedCh:
 				if mLike.Checked() {
-					cancelLike(conf)
-					mLike.Uncheck()
-					mLike.SetIcon([]byte{})
+					err := cancelLike(conf)
+					if err == nil {
+						mLike.Uncheck()
+						mLike.SetIcon([]byte{})
+					}
 				} else {
-					addLike(conf)
-					mLike.Check()
-					mLike.SetIcon(loadIcon(IconOk))
+					err := addLike(conf)
+					if err == nil {
+						mLike.Check()
+						mLike.SetIcon(loadIcon(IconOk))
+					}
 				}
 			case <-mOpenLikeDir.ClickedCh:
 				openLikeDir(conf)

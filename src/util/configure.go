@@ -8,13 +8,8 @@ import (
 
 type Configuration struct {
 	Updatedate string `json:"enddate"`
-	Likedate   string `json:"likedate"`
 	Likedir    string `json:"likedir"`
 	Wpdir      string `json:"wpdir"`
-	Bing       struct {
-		Copyright   string `json:"copyright"`
-		Discription string `json:"discription"`
-	} `json:"bing"`
 }
 
 const CONFIG_FILENAME string = "config.json"
