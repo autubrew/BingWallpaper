@@ -6,7 +6,7 @@ import (
 	"github.com/sciter-sdk/go-sciter"
 	"github.com/sciter-sdk/go-sciter/window"
 	"syscall"
-	"util"
+	"config"
 )
 
 func defFunc(w *window.Window)  {
@@ -14,7 +14,7 @@ func defFunc(w *window.Window)  {
 	//点击浏览打开文件管理器选择指定目录
 	w.DefineFunction("selectCustomDir", func(args ...*sciter.Value) *sciter.Value {
 
-		conf, _ := util.ReadConfiguration()
+		conf, _ := config.ReadConfigFile()
 
 		var path string
 		id := args[0].String()

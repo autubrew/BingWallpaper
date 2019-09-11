@@ -6,13 +6,13 @@ import (
 	"github.com/sciter-sdk/go-sciter/window"
 	"os"
 	"syscall"
-	"util"
+	"config"
 )
 
 //“设置”窗口初始化工作
 func winInit(w *window.Window) error {
 
-	conf, _ := util.ReadConfiguration()
+	conf, _ := config.ReadConfigFile()
 
 	//显示输入框内默认值
 	root, _ := w.GetRootElement()
@@ -32,7 +32,7 @@ func winInit(w *window.Window) error {
 //更新配置目录
 func updateConfigDir(dirs... string) error {
 
-	conf, _ := util.ReadConfiguration()
+	conf, _ := config.ReadConfigFile()
 	if conf.Wpdir == dirs[0] && conf.Likedir == dirs[1] {
 		return nil
 	} else {
@@ -51,7 +51,7 @@ func updateConfigDir(dirs... string) error {
 			return err
 		}
 
-		err = util.WriteConfiguration(conf)
+		err = config.WriteConfigFile(conf)
 		if err != nil {
 			return err
 		}

@@ -45,7 +45,7 @@ var (
 	wpname     string               //生成的壁纸名。格式：日期_内容
 	wpinfo     string               //壁纸的信息。包括内容和copyright
 	updating   = false              //判断程序是否正在更新壁纸，确保同时只有一个更新实例在运行
-	HasUpdated = make(chan bool, 1) //更新成功信号
+	SigUpdated = make(chan bool, 1) //更新成功信号
 )
 
 const (
@@ -141,6 +141,7 @@ func setWallpaper(wpabspath string) bool {
 //更新壁纸
 //只允许同时有一个Update实例进行更新
 //若更新成功则返回更新时间和nil，同时设置桌面壁纸；否则返回空时间且给出error，说明正在有其他实例进行更新
+//建议使用使用goroutine
 func Update(savedir string) (string, error) {
 
 	if !updating {
@@ -168,7 +169,7 @@ func Update(savedir string) (string, error) {
 	copyright := bing.Images[0].Copyright[len(description)+2 : len(bing.Images[0].Copyright)-1]
 	wpinfo = description + "\n" + copyright
 
-	HasUpdated <- true
+	SigUpdated <- true
 	updating = false
 
 	return bing.Images[0].Enddate, nil

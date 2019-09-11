@@ -2,13 +2,13 @@ package ui
 
 import (
 	"bing"
+	"config"
 	"github.com/getlantern/systray"
 	"github.com/go-toast/toast"
 	"io/ioutil"
 	"path/filepath"
 	"strconv"
 	"time"
-	"util"
 )
 
 const (
@@ -42,7 +42,7 @@ func updateMonitors() {
 	//监听更新信号
 	go func() {
 		for {
-			<-bing.HasUpdated
+			<-bing.SigUpdated
 			sign.Notification <- true
 			sign.TrayTooltip <- true
 		}
@@ -79,7 +79,7 @@ func updateMonitors() {
 
 func onReady() {
 
-	conf, _ := util.ReadConfiguration()
+	conf, _ := config.ReadConfigFile()
 
 	systray.SetIcon(loadIcon(IconSystray))
 	systray.SetTooltip("正在等待网络连接")
@@ -113,14 +113,16 @@ func onReady() {
 
 	go func() {
 		for {
-			conf, _ := util.ReadConfiguration()
-			select {	//所有case下的函数均要求不出现循环或阻塞，否则会造成其他case无法响应
+			conf, _ := config.ReadConfigFile()
+			select { //所有case下的函数均要求不出现循环或阻塞，否则会造成其他case无法响应
 			case <-mUpdate.ClickedCh:
-				updatedate, err := bing.Update(conf.Wpdir)
-				if err == nil {
-					conf.Updatedate = updatedate
-					util.WriteConfiguration(conf)
-				}
+				go func() {
+					updatedate, err := bing.Update(conf.Wpdir)
+					if err == nil {
+						conf.Updatedate = updatedate
+						config.WriteConfigFile(conf)
+					}
+				}()
 			case <-mWpDir.ClickedCh:
 				openWpDir(conf)
 			case <-mLike.ClickedCh:
@@ -150,7 +152,7 @@ func onReady() {
 }
 
 func onExit() {
-	close(bing.HasUpdated)
+	close(bing.SigUpdated)
 	close(sign.Notification)
 	close(sign.TrayTooltip)
 	//TODO:若设置窗口打开，则一并关闭

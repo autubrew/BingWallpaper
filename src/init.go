@@ -1,11 +1,11 @@
 package main
 
 import (
+	"config"
 	"golang.org/x/sys/windows/registry"
 	"os"
 	"path/filepath"
 	"ui"
-	"util"
 )
 
 func path2Abs(pathname string) string {
@@ -25,7 +25,7 @@ func autoSatrtup() error {
 	}
 	defer key.Close()
 	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	err = key.SetStringValue(ui.APP_NAME, `"` + dir + "\\" + ui.APP_NAME + `.exe"`)
+	err = key.SetStringValue(ui.APP_NAME, `"`+dir+"\\"+ui.APP_NAME+`.exe"`)
 	if err != nil {
 		return err
 	}
@@ -33,9 +33,10 @@ func autoSatrtup() error {
 }
 
 func Init() error {
+
 	//读取配置文件
-	var conf util.Configuration
-	conf, err := util.ReadConfiguration()
+	var conf config.Configuration
+	conf, err := config.ReadConfigFile()
 	//fmt.Println(bing.Conf)
 	if err != nil {
 		return err
@@ -55,7 +56,7 @@ func Init() error {
 		return err
 	}
 
-	err = util.WriteConfiguration(conf)
+	err = config.WriteConfigFile(conf)
 	if err != nil {
 		return err
 	}

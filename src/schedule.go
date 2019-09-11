@@ -3,19 +3,19 @@ package main
 import (
 	"bing"
 	"time"
-	"util"
+	"config"
 )
 
 
 func UpdateTask() {
 
-	conf, _ := util.ReadConfiguration()
+	conf, _ := config.ReadConfigFile()
 
 	if conf.Updatedate != time.Now().Format("20060102") {	//启动时确定是否需要更新一次
 		updatedate, err := bing.Update(conf.Wpdir)
 		if err == nil {
 			conf.Updatedate = updatedate
-			util.WriteConfiguration(conf)
+			config.WriteConfigFile(conf)
 		}
 	}
 	for { //每天0点触发
@@ -25,7 +25,7 @@ func UpdateTask() {
 		updatedate, err := bing.Update(conf.Wpdir)
 		if err == nil {
 			conf.Updatedate = updatedate
-			util.WriteConfiguration(conf)
+			config.WriteConfigFile(conf)
 		}
 	}
 }

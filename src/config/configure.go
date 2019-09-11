@@ -1,4 +1,4 @@
-package util
+package config
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ type Configuration struct {
 
 const CONFIG_FILENAME string = "config.json"
 
-func ReadConfiguration() (Configuration, error) {
+func ReadConfigFile() (Configuration, error) {
 	var Conf Configuration
 	byteValue, err := ioutil.ReadFile(CONFIG_FILENAME)
 	if err != nil {
@@ -28,7 +28,7 @@ func ReadConfiguration() (Configuration, error) {
 	}
 }
 
-func WriteConfiguration(conf Configuration) error {
+func WriteConfigFile(conf Configuration) error {
 	jsonBytes, err := json.MarshalIndent(conf, "", "\t")
 	if err != nil {
 		return err

@@ -8,11 +8,11 @@ import (
 	"os/exec"
 	"syscall"
 	"time"
-	"util"
+	"config"
 )
 
 //壁纸添加收藏
-func addLike(conf util.Configuration) error {
+func addLike(conf config.Configuration) error {
 	if conf.Updatedate != time.Now().Format("20060102") { //核实今日是否更新，不更新无法收藏
 		return errors.New("not updated")
 	}
@@ -34,7 +34,7 @@ func addLike(conf util.Configuration) error {
 }
 
 //取消壁纸收藏
-func cancelLike(conf util.Configuration) error {
+func cancelLike(conf config.Configuration) error {
 	err := os.Remove(conf.Likedir + bing.GetWallpaperName())
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func cancelLike(conf util.Configuration) error {
 }
 
 //判断当日的壁纸是否被收藏
-func isLike(conf util.Configuration) bool {
+func isLike(conf config.Configuration) bool {
 	if conf.Updatedate != time.Now().Format("20060102") { //未更新，则今日必未收藏
 		return false
 	}
@@ -57,7 +57,7 @@ func isLike(conf util.Configuration) bool {
 }
 
 //打开壁纸夹
-func openWpDir(conf util.Configuration) error {
+func openWpDir(conf config.Configuration) error {
 	cmd := exec.Command(`cmd`, `/c`, `explorer`, conf.Wpdir)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	err := cmd.Start()
@@ -69,7 +69,7 @@ func openWpDir(conf util.Configuration) error {
 }
 
 //打开收藏夹
-func openLikeDir(conf util.Configuration) error {
+func openLikeDir(conf config.Configuration) error {
 	cmd := exec.Command(`cmd`, `/c`, `explorer`, conf.Likedir)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	err := cmd.Start()
