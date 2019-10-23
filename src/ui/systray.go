@@ -120,11 +120,11 @@ func onReady() {
 					updatedate, err := bing.Update(conf.Wpdir)
 					if err == nil {
 						conf.Updatedate = updatedate
-						config.WriteConfigFile(conf)
+						_ = config.WriteConfigFile(conf)
 					}
 				}()
 			case <-mWpDir.ClickedCh:
-				openWpDir(conf)
+				_ = openWpDir(conf)
 			case <-mLike.ClickedCh:
 				if mLike.Checked() {
 					err := cancelLike(conf)
@@ -140,9 +140,9 @@ func onReady() {
 					}
 				}
 			case <-mOpenLikeDir.ClickedCh:
-				openLikeDir(conf)
+				_ = openLikeDir(conf)
 			case <-mSetting.ClickedCh:
-				createWinSetting()
+				_ = createWinSetting()
 			case <-mQuit.ClickedCh:
 				systray.Quit()
 			}

@@ -25,7 +25,7 @@ func autoSatrtup() error {
 	}
 	defer key.Close()
 	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	err = key.SetStringValue(ui.APP_NAME, `"`+dir+"\\"+ui.APP_NAME+`.exe"`)
+	err = key.SetStringValue(ui.APP_NAME, `"` + dir + "\\" + ui.APP_NAME + `.exe"`)
 	if err != nil {
 		return err
 	}

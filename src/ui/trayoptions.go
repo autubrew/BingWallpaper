@@ -2,13 +2,13 @@ package ui
 
 import (
 	"bing"
+	"config"
 	"errors"
 	"io"
 	"os"
 	"os/exec"
 	"syscall"
 	"time"
-	"config"
 )
 
 //壁纸添加收藏
